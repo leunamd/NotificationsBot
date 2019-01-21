@@ -7261,7 +7261,10 @@
           },
           "PushBulletSharp": {
             "target": "Package",
-            "version": "[3.1.0, )"
+            "version": "[3.1.0, )",
+            "noWarn": [
+              "NU1701"
+            ]
           }
         },
         "imports": [
@@ -7276,17 +7279,5 @@
         "#import": []
       }
     }
-  },
-  "logs": [
-    {
-      "code": "NU1701",
-      "level": "Warning",
-      "warningLevel": 1,
-      "message": "Il pacchetto 'PushBulletSharp 3.1.0' è stato ripristinato mediante '.NETFramework,Version=v4.6.1' e non mediante il framework di destinazione del progetto '.NETCoreApp,Version=v2.2'. Questo pacchetto potrebbe non essere completamente compatibile con il progetto.",
-      "libraryId": "PushBulletSharp",
-      "targetGraphs": [
-        ".NETCoreApp,Version=v2.2"
-      ]
-    }
-  ]
+  }
 }

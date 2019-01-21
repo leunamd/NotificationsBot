@@ -55,26 +55,52 @@ namespace ConsoleApp1
             Server= Console.ReadLine();
             Console.WriteLine("sid");
             Sid= Console.ReadLine();
-            Console.WriteLine("Logging in...");
+            Console.WriteLine(DateTime.Now.ToString("HH:mm:ss ")+"Logging in...");
     }
 
-    void push(){
+    void push(int i){                     //0=inactivty 1=session lost
        try{
            var currentUserInformation = client.CurrentUsersInformation();
 
         if (currentUserInformation != null)
         {
-                PushNoteRequest request = new PushNoteRequest
+            PushNoteRequest request;
+            if (i == 0)
+            {
+                request = new PushNoteRequest
                 {
+
                     Email = currentUserInformation.Email,
                     Title = "INACTIVE",
-                    Body = "Bot has been inactive for 5 minutes!"
+                    Body = DateTime.Now.ToString("HH:mm:ss ")+"Bot has been inactive for 5 minutes!"
                 };
-            
-                PushResponse response = client.PushNote(request);
+                Console.WriteLine(DateTime.Now.ToString("HH:mm:ss ")+"Inactive");
+            }else if (i == 1)
+            {
+                request = new PushNoteRequest
+                {
+
+                    Email = currentUserInformation.Email,
+                    Title = "SESSION LOST",
+                    Body = DateTime.Now.ToString("HH:mm:ss ")+"Session not found!"
+                };
+                Console.WriteLine(DateTime.Now.ToString("HH:mm:ss ")+"Session not found(SID expired)");
+            }
+            else
+            {
+                request = new PushNoteRequest
+                {
+
+                    Email = currentUserInformation.Email,
+                    Title = "ERROR",
+                    Body = DateTime.Now.ToString("HH:mm:ss ")+"Unknown error!"
+                };
+            }
+
+            PushResponse response = client.PushNote(request);
         }
        }catch(Exception ex){
-           Console.WriteLine("API key not found. Go here to generate your api key and sync your accounts: https://www.pushbullet.com/#settings/account");
+           Console.WriteLine(DateTime.Now.ToString("HH:mm:ss ")+"API key not found. Go here to generate your api key and sync your accounts: https://www.pushbullet.com/#settings/account");
            Console.WriteLine(ex.StackTrace);
        }
     }
@@ -86,8 +112,8 @@ namespace ConsoleApp1
             shows=shows.Replace(" ",string.Empty);
             shows = Regex.Replace(shows, @"\t|\n|\r", "");
             if(C==0)
-                Console.WriteLine("Logged in");
-            Console.WriteLine(shows);
+                Console.WriteLine(DateTime.Now.ToString("HH:mm:ss ")+"Logged in");
+            Console.WriteLine(DateTime.Now.ToString("HH:mm:ss ")+shows);
             shows=shows.Replace(".",string.Empty);
             //Console.WriteLine(shows);
             if(C==0)
@@ -95,8 +121,7 @@ namespace ConsoleApp1
             else{
                 if(string.Compare(Crediti,shows)==0){
                     //notifica cell per inattività
-                    push();
-                    Console.WriteLine("Inactive");
+                    push(0);
                 }else{
                     crediti=shows;
                 }
@@ -104,8 +129,7 @@ namespace ConsoleApp1
             C++;
         }else{
             //notifica cell perchè sloggato
-            push();
-            Console.WriteLine("Session not found(SID expired)");
+            push(1);
         }
     }
     void check(object source, ElapsedEventArgs e){
@@ -117,8 +141,8 @@ namespace ConsoleApp1
             shows=shows.Replace(" ",string.Empty);
             shows = Regex.Replace(shows, @"\t|\n|\r", "");
             if(C==0)
-                Console.WriteLine("Logged in");
-            Console.WriteLine(shows);
+                Console.WriteLine(DateTime.Now.ToString("HH:mm:ss ")+"Logged in");
+            Console.WriteLine(DateTime.Now.ToString("HH:mm:ss ")+shows);
             shows=shows.Replace(".",string.Empty);
             //Console.WriteLine(shows);
             if(C==0)
@@ -126,8 +150,7 @@ namespace ConsoleApp1
             else{
                 if(string.Compare(Crediti,shows)==0){
                     //notifica cell per inattività
-                    push();
-                    Console.WriteLine("Inactive");
+                    push(0);
                 }else{
                     crediti=shows;
                 }
@@ -135,8 +158,7 @@ namespace ConsoleApp1
             C++;
         }else{
             //notifica cell perchè sloggato
-            push();
-            Console.WriteLine("Session not found(SID expired)");
+            push(1);
         }
 
     }
@@ -182,12 +204,12 @@ namespace ConsoleApp1
                             ok += wb.DownloadString("https://" + Server +
                                                     ".darkorbit.com/indexInternal.es?action=internalNanoTechFactory&subaction=buildBuff" +
                                                     HtmlResult);
-                            Console.WriteLine("Iniziata la produzione di teleguida missili");
+                            Console.WriteLine(DateTime.Now.ToString("HH:mm:ss ")+"Missiles tech has been started");
                         }
                       
             }catch(Exception ex)
             {
-                Console.WriteLine("Darkorbit offline/Connection not available");
+                Console.WriteLine(DateTime.Now.ToString("HH:mm:ss ")+"Connection not available/Wrong SID or Server");
                 Console.WriteLine(ex.StackTrace);
             }
                         return ok;
