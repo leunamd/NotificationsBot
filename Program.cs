@@ -184,10 +184,7 @@ namespace ConsoleApp1
                                                     HtmlResult);
                             Console.WriteLine("Iniziata la produzione di teleguida missili");
                         }
-                        else
-                        {
-                            Console.WriteLine("Teleguida missili è gia in produzione");
-                        }
+                      
             }catch(Exception ex)
             {
                 Console.WriteLine("Darkorbit offline/Connection not available");

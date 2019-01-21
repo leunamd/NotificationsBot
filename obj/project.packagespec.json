@@ -1,10 +1,10 @@
 ﻿{
   "version": "1.0.0",
   "restore": {
-    "projectUniqueName": "C:\\Users\\manu\\RiderProjects\\NotificationsBot\\ConsoleApp1\\ConsoleApp1.csproj",
+    "projectUniqueName": "C:\\Users\\manu\\RiderProjects\\NotificationsBot\\ConsoleApp1.csproj",
     "projectName": "ConsoleApp1",
-    "projectPath": "C:\\Users\\manu\\RiderProjects\\NotificationsBot\\ConsoleApp1\\ConsoleApp1.csproj",
-    "outputPath": "C:\\Users\\manu\\RiderProjects\\NotificationsBot\\ConsoleApp1\\obj\\",
+    "projectPath": "C:\\Users\\manu\\RiderProjects\\NotificationsBot\\ConsoleApp1.csproj",
+    "outputPath": "C:\\Users\\manu\\RiderProjects\\NotificationsBot\\obj\\",
     "projectStyle": "PackageReference",
     "fallbackFolders": [
       "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"
