@@ -7,7 +7,8 @@
 
     <ItemGroup>
       <PackageReference Include="GitForWindows" Version="2.20.1" />
-      <PackageReference Include="PushBulletSharp" Version="3.1.0" >
+      <PackageReference Include="HtmlAgilityPack" Version="1.8.13" />
+      <PackageReference Include="PushBulletSharp" Version="3.1.0">
         <NoWarn>NU1701</NoWarn>
       </PackageReference>
     </ItemGroup>

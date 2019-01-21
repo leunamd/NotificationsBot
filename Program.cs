@@ -5,6 +5,8 @@ using System.Timers;
 using PushbulletSharp;
 using PushbulletSharp.Models.Requests;
 using PushbulletSharp.Models.Responses;
+using HtmlAgilityPack;
+using System.Collections.Generic;
 
 namespace ConsoleApp1
 {
@@ -28,7 +30,7 @@ namespace ConsoleApp1
             Program a = new Program();
             a.login();
             a.check();
-            Timer t = new Timer(TimeSpan.FromMinutes(5).TotalMilliseconds); // Set the time (5 mins in this case)
+            Timer t = new Timer(TimeSpan.FromMinutes(1).TotalMilliseconds); // Set the time (5 mins in this case)
             t.AutoReset = true;
             t.Elapsed += new System.Timers.ElapsedEventHandler(a.check);
             t.Start();
@@ -106,16 +108,16 @@ namespace ConsoleApp1
     }
     void check(){
         var shows = GetSourceForMyShowsPage();
-        shows=getBetween(shows, "header_money", "</div>");
+        var doc = new HtmlAgilityPack.HtmlDocument();
+        doc.LoadHtml( shows );
         if(shows!=""){
-            shows=shows.Remove(0,2);
+            shows= doc.DocumentNode.SelectSingleNode("(//div[@id=\"header_credits\"])").InnerText; 
             shows=shows.Replace(" ",string.Empty);
-            shows = Regex.Replace(shows, @"\t|\n|\r", "");
+            shows = Regex.Replace(shows, @"\n", "");
             if(C==0)
                 Console.WriteLine(DateTime.Now.ToString("HH:mm:ss ")+"Logged in");
             Console.WriteLine(DateTime.Now.ToString("HH:mm:ss ")+shows);
             shows=shows.Replace(".",string.Empty);
-            //Console.WriteLine(shows);
             if(C==0)
                 Crediti=shows;
             else{
@@ -134,17 +136,16 @@ namespace ConsoleApp1
     }
     void check(object source, ElapsedEventArgs e){
         var shows = GetSourceForMyShowsPage();
-        shows=getBetween(shows, "header_money", "</div>");
-
+        var doc = new HtmlAgilityPack.HtmlDocument();
+        doc.LoadHtml( shows );
         if(shows!=""){
-            shows=shows.Remove(0,2);
+            shows= doc.DocumentNode.SelectSingleNode("(//div[@id=\"header_credits\"])").InnerText;
             shows=shows.Replace(" ",string.Empty);
-            shows = Regex.Replace(shows, @"\t|\n|\r", "");
+            shows = Regex.Replace(shows, @"\n", "");
             if(C==0)
                 Console.WriteLine(DateTime.Now.ToString("HH:mm:ss ")+"Logged in");
             Console.WriteLine(DateTime.Now.ToString("HH:mm:ss ")+shows);
             shows=shows.Replace(".",string.Empty);
-            //Console.WriteLine(shows);
             if(C==0)
                 Crediti=shows;
             else{
@@ -160,7 +161,6 @@ namespace ConsoleApp1
             //notifica cell perchè sloggato
             push(1);
         }
-
     }
      string  GetSourceForMyShowsPage()
     {
@@ -196,21 +196,24 @@ namespace ConsoleApp1
                         wb.Headers.Add("Content-Type","application/x-www-form-urlencoded");
                         
                         string HtmlResult = wb.UploadString("https://"+Server+".darkorbit.com/ajax/nanotechFactory.php", "command=nanoTechFactoryShowBuff&key=RPM&level=1");
-                        string inProduzione = getBetween(HtmlResult, "result", "buildlink_inactive");
+                        string inProduzione = getBetween(HtmlResult, "result", "button_build_inactive");
                         if (inProduzione == "")
                         {
-                            HtmlResult = getBetween(HtmlResult, "buildBuff", "\\");
-                            HtmlResult = HtmlResult.Remove(17, 10);
-                            ok += wb.DownloadString("https://" + Server +
-                                                    ".darkorbit.com/indexInternal.es?action=internalNanoTechFactory&subaction=buildBuff" +
-                                                    HtmlResult);
-                            Console.WriteLine(DateTime.Now.ToString("HH:mm:ss ")+"Missiles tech has been started");
+                            var doc = new HtmlAgilityPack.HtmlDocument();
+                            doc.LoadHtml( HtmlResult );
+                            var link = doc.DocumentNode.SelectSingleNode("(//a[@href])[2]");
+                            HtmlResult = link.Attributes["href"].Value;
+                            HtmlResult = HtmlResult.Remove(0, 2);
+                            HtmlResult = HtmlResult.Remove(HtmlResult.Length-2);
+                            ok += wb.DownloadString("https://" + Server + ".darkorbit.com/" + HtmlResult);
+                            Console.WriteLine(DateTime.Now.ToString("HH:mm:ss ")+"Precision Targeter tech has been started");
                         }
                       
             }catch(Exception ex)
             {
                 Console.WriteLine(DateTime.Now.ToString("HH:mm:ss ")+"Connection not available/Wrong SID or Server");
                 Console.WriteLine(ex.StackTrace);
+                ok = "";
             }
                         return ok;
                     }

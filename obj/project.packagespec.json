@@ -30,6 +30,10 @@
           "target": "Package",
           "version": "[2.20.1, )"
         },
+        "HtmlAgilityPack": {
+          "target": "Package",
+          "version": "[1.8.13, )"
+        },
         "Microsoft.NETCore.App": {
           "suppressParent": "All",
           "target": "Package",
