@@ -1,0 +1,54 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v2.2",
+    "signature": "0311916afd1fdd352bb8ad93ce792ebd42017c3c"
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v2.2": {
+      "ConsoleApp1/1.0.0": {
+        "dependencies": {
+          "GitForWindows": "2.20.1",
+          "PushBulletSharp": "3.1.0"
+        },
+        "runtime": {
+          "ConsoleApp1.dll": {}
+        }
+      },
+      "GitForWindows/2.20.1": {},
+      "PushBulletSharp/3.1.0": {
+        "runtime": {
+          "lib/portable-windows8+net45/BouncyCastle.dll": {
+            "assemblyVersion": "1.8.1.0",
+            "fileVersion": "1.8.15362.1"
+          },
+          "lib/portable-windows8+net45/PushbulletSharp.dll": {
+            "assemblyVersion": "3.0.0.1",
+            "fileVersion": "3.0.0.1"
+          }
+        }
+      }
+    }
+  },
+  "libraries": {
+    "ConsoleApp1/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "GitForWindows/2.20.1": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-K7gkW2taKcn6B0tHe0ic9EdYMFKFtkivUhNosg3xJsgSQl7qM6PdVm21wlPl8JR6nw5RVGpTUWCHPOb5ary1cg==",
+      "path": "gitforwindows/2.20.1",
+      "hashPath": "gitforwindows.2.20.1.nupkg.sha512"
+    },
+    "PushBulletSharp/3.1.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-mzAMe1dXBp6jSGoc0/soHGznIB+i/4RzNAeOS2qlN8AyYNoqlmV+nIJgRM1dOW09N+ZMifQYReoVkz2AUTP6/Q==",
+      "path": "pushbulletsharp/3.1.0",
+      "hashPath": "pushbulletsharp.3.1.0.nupkg.sha512"
+    }
+  }
+}
