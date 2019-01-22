@@ -15,6 +15,9 @@ namespace ConsoleApp1
         private string sid=string.Empty;
         private string server=string.Empty;
         private string crediti=string.Empty;
+        private string username=string.Empty;
+        private string password=string.Empty;
+        
         private int c=0;
         PushbulletClient client;
         public string Sid { get => server; set => server = value; }
@@ -25,12 +28,16 @@ namespace ConsoleApp1
 
         public string Crediti { get => crediti; set => crediti = value; }
         
+        public string Username { get => username; set => username = value; }
+        
+        public string Password { get => password; set => password = value; }
+        
         static void Main(string[] args)
         {
             Program a = new Program();
             a.login();
             a.check();
-            Timer t = new Timer(TimeSpan.FromMinutes(1).TotalMilliseconds); // Set the time (5 mins in this case)
+            Timer t = new Timer(TimeSpan.FromMinutes(5).TotalMilliseconds); // Set the time (5 mins in this case)
             t.AutoReset = true;
             t.Elapsed += new System.Timers.ElapsedEventHandler(a.check);
             t.Start();
@@ -56,7 +63,11 @@ namespace ConsoleApp1
             Console.WriteLine("server");
             Server= Console.ReadLine();
             Console.WriteLine("sid");
-            Sid= Console.ReadLine();
+            Sid= Console.ReadLine();   
+            Console.WriteLine("username");
+            Username= Console.ReadLine();      
+            Console.WriteLine("password");
+            Password= Console.ReadLine();
             Console.WriteLine(DateTime.Now.ToString("HH:mm:ss ")+"Logging in...");
     }
 
@@ -172,30 +183,41 @@ namespace ConsoleApp1
             // Download desired page
             wb.Headers.Add(HttpRequestHeader.Cookie, "dosid="+Sid);
             string ok="";
-            try{
-            //Console.WriteLine("COOKIES:"+wb.Headers.Get("Cookie"));
-            ok= wb.DownloadString("https://www.darkorbit.com");
-           // Console.WriteLine("DOSID USCITA"+wb.ResponseHeaders.Get("Cookie"));
-          /*  for(int i = 0; i < wb.ResponseHeaders.Count; i++)
+            try
             {
-                String header = wb.ResponseHeaders.GetKey(i);
-                String[] values = 
-                    wb.ResponseHeaders.GetValues(header);
-                if(values.Length > 0) 
-                {
-                    Console.WriteLine("The values of {0} header are : "
-                                    , header);
-                    for(int j = 0; j < values.Length; j++) 
-                        Console.WriteLine("\t{0}", values[j]);
+                //Console.WriteLine("COOKIES:"+wb.Headers.Get("Cookie"));
+                ok+=wb.DownloadString("https://www.darkorbit.com");
+                // Console.WriteLine("DOSID USCITA"+wb.ResponseHeaders.Get("Cookie"));
+                /*  for(int i = 0; i < wb.ResponseHeaders.Count; i++)
+                  {
+                      String header = wb.ResponseHeaders.GetKey(i);
+                      String[] values = 
+                          wb.ResponseHeaders.GetValues(header);
+                      if(values.Length > 0) 
+                      {
+                          Console.WriteLine("The values of {0} header are : "
+                                          , header);
+                          for(int j = 0; j < values.Length; j++) 
+                              Console.WriteLine("\t{0}", values[j]);
+                      }
+                      else
+                          Console.WriteLine("There is no value associated" +
+                              "with the header");
+                  }*/
+                ok += wb.DownloadString("https://" + Server + ".darkorbit.com/indexInternal.es?action=internalStart");
+                //wb.Headers.Add("Content-Type", "application/x-www-form-urlencoded");
+                var doc1 = new HtmlAgilityPack.HtmlDocument();
+                doc1.LoadHtml(ok);
+                wb.Headers.Add("Content-Type", "application/x-www-form-urlencoded");
+                if (getBetween(doc1.Text, "html", "header_credits") == ""){
+                    Console.WriteLine(DateTime.Now.ToString("HH:mm:ss ")+"Session expired! Relogging in with the same SID");
+                    var link2 = doc1.DocumentNode.SelectSingleNode("(//form[@action])[1]");
+                    var a = link2.Attributes["action"].Value;
+                    a = a.Replace("&amp;", "&");
+                    ok+= wb.UploadString(a, "username="+Username+"&password="+Password);
                 }
-                else
-                    Console.WriteLine("There is no value associated" +
-                        "with the header");
-            }*/
-                        ok+=wb.DownloadString("https://"+Server+".darkorbit.com/indexInternal.es?action=internalStart");
-                        wb.Headers.Add("Content-Type","application/x-www-form-urlencoded");
-                        
-                        string HtmlResult = wb.UploadString("https://"+Server+".darkorbit.com/ajax/nanotechFactory.php", "command=nanoTechFactoryShowBuff&key=RPM&level=1");
+                wb.Headers.Add("Content-Type", "application/x-www-form-urlencoded");
+                  string HtmlResult = wb.UploadString("https://"+Server+".darkorbit.com/ajax/nanotechFactory.php", "command=nanoTechFactoryShowBuff&key=RPM&level=1");
                         string inProduzione = getBetween(HtmlResult, "result", "button_build_inactive");
                         if (inProduzione == "")
                         {
