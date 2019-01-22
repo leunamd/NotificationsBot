@@ -54,5 +54,13 @@
       "assetTargetFallback": true,
       "warn": true
     }
+  },
+  "runtimes": {
+    "win-x64,win-x86": {
+      "#import": []
+    },
+    "win10-x64": {
+      "#import": []
+    }
   }
 }
