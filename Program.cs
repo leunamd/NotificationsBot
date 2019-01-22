@@ -35,7 +35,7 @@ namespace ConsoleApp1
             Program a = new Program();
             a.login();
             a.check();
-            Timer t = new Timer(TimeSpan.FromMinutes(1).TotalMilliseconds); // Set the time (5 mins in this case)
+            Timer t = new Timer(TimeSpan.FromMinutes(5).TotalMilliseconds); // Set the time (5 mins in this case)
             t.AutoReset = true;
             t.Elapsed += (a.check);
             t.Start();
@@ -56,8 +56,8 @@ namespace ConsoleApp1
         
         void login(){
             Console.WriteLine("PushBullet API Key");
-            String apikey=Console.ReadLine();
-            client= new PushbulletClient(apikey);
+            String apikey=Console.ReadLine();      //add your apikey directly if you don't want to reenter it everytime
+            client= new PushbulletClient("apikey");
             Console.WriteLine("server");
             Server= Console.ReadLine();
             Console.WriteLine("sid");
