@@ -1,0 +1,2 @@
+apikey;server;sid;username;password;damagePercentagetoRepairdrones;buildTech
+                                     from 0 to 99               	true or false   

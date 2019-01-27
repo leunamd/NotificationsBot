@@ -14,17 +14,39 @@ using PushbulletSharp.Models.Requests;
 
 namespace ConsoleApp1{
     
+    public class Settings{
+
+        private int damagePercentage;
+
+        public int DamagePercentage{
+            get => damagePercentage;
+            set => damagePercentage = value;
+        }
+
+        public bool BuildTech{
+            get => buildTech;
+            set => buildTech = value;
+        }
+
+        private bool buildTech;
+        
+        public Settings(int damagePercentage,bool buildTech){
+            DamagePercentage = damagePercentage;
+            BuildTech = buildTech;
+        }
+    }
     public class Account{
         
         private PushbulletClient client;
-
+        
+        private Settings settings;
+        
         private string sid=string.Empty;
         private string server=string.Empty;
         private string crediti=string.Empty;
         private string username=string.Empty;
         private string password=string.Empty;
-        
-        
+         
         private int c=0;
         
 
@@ -34,6 +56,10 @@ namespace ConsoleApp1{
             Sid = sid;
             Username = username;
             Password = password;
+        }
+
+        public void AddSettings(int damagePercentage,bool buildTech){
+            settings = new Settings(damagePercentage,buildTech);
         }
         
          private void SendNotification(int i){                     //0=inactivty 1=session lost
@@ -51,7 +77,7 @@ namespace ConsoleApp1{
                                 Title = "INACTIVE",
                                 Body = DateTime.Now.ToString("HH:mm:ss ")+"Bot has been inactive for 5 minutes!"
                             };
-                            Console.WriteLine(DateTime.Now.ToString("HH:mm:ss ")+"Inactive");
+                            Console.WriteLine(DateTime.Now.ToString("HH:mm:ss ")+Username+" | "+"Inactive");
                             break;
                         case 1:
                             request = new PushNoteRequest{
@@ -59,13 +85,13 @@ namespace ConsoleApp1{
                                 Title = "SESSION LOST",
                                 Body = DateTime.Now.ToString("HH:mm:ss ")+"Session not found!"
                             };
-                            Console.WriteLine(DateTime.Now.ToString("HH:mm:ss ")+"Session not found(SID expired)");
+                            Console.WriteLine(DateTime.Now.ToString("HH:mm:ss ")+Username+" | "+"Session not found(SID expired)");
                             break;
                         default:
                             request = new PushNoteRequest{
                                 Email = currentUserInformation.Email,
                                 Title = "ERROR",
-                                Body = DateTime.Now.ToString("HH:mm:ss ")+"Unknown error!"
+                                Body = DateTime.Now.ToString("HH:mm:ss ")+Username+" | "+"Unknown error!"
                             };
                             break;
                     }
@@ -74,7 +100,7 @@ namespace ConsoleApp1{
                 }
                 
             }catch(Exception ex){
-                Console.WriteLine(DateTime.Now.ToString("HH:mm:ss ")+"API key not found. Go here to generate" +
+                Console.WriteLine(DateTime.Now.ToString("HH:mm:ss ")+Username+" | "+"API key not found. Go here to generate" +
                                  " your api key and sync your accounts: https://www.pushbullet.com/#settings/account");
                 Console.WriteLine(ex.StackTrace);
            }
@@ -91,13 +117,12 @@ namespace ConsoleApp1{
                  credits=credits.Replace(" ",string.Empty);
                  credits = Regex.Replace(credits, @"\n", "");    
                  if (C == 0){
-                     Console.WriteLine(DateTime.Now.ToString("HH:mm:ss ") + "Logged in");
-                     Console.WriteLine(DateTime.Now.ToString("HH:mm:ss ")+credits);
+                     Console.WriteLine(DateTime.Now.ToString("HH:mm:ss ")+Username+" | "+credits);
                      credits=credits.Replace(".",string.Empty);
                      Crediti=credits;        
                      C++;
                  }else{
-                     Console.WriteLine(DateTime.Now.ToString("HH:mm:ss ")+credits);
+                     Console.WriteLine(DateTime.Now.ToString("HH:mm:ss ")+Username+" | "+credits);
                      credits=credits.Replace(".",string.Empty);       
                      if(string.Compare(Crediti,credits)==0)
                          SendNotification(0);
@@ -121,11 +146,12 @@ namespace ConsoleApp1{
                  credits=credits.Replace(" ",string.Empty);
                  credits = Regex.Replace(credits, @"\n", "");    
                  if (C == 0){
-                     Console.WriteLine(DateTime.Now.ToString("HH:mm:ss ") + "Logged in");
+                     Console.WriteLine(DateTime.Now.ToString("HH:mm:ss ")+Username+" | " + "Logged in");
                      Crediti=credits;
                      C++;
                  }else{
-                     Console.WriteLine(DateTime.Now.ToString("HH:mm:ss ")+credits);
+                     C++;
+                     Console.WriteLine(DateTime.Now.ToString("HH:mm:ss ")+Username+" | "+credits);
                      credits=credits.Replace(".",string.Empty);       
                      if(string.Compare(Crediti,credits)==0)
                          SendNotification(0);
@@ -148,16 +174,17 @@ namespace ConsoleApp1{
                     var doc1 = new HtmlAgilityPack.HtmlDocument();
                     doc1.LoadHtml(htmlResult);
                      
-                    if (getBetween(doc1.Text, "html", "header_credits") == ""){
+                    if (getBetween(doc1.Text, "html", "header_credits") == "")
                         htmlResult += LoginWhenExpired(wc,doc1);
-                    }
-                    if(C==0)
+                    if((C % 72)==0)                    // Checks at first runtime and every 6 hours
                         htmlResult += DailyLoginBonus(wc);
                     
-                    htmlResult += BuildPrecisionTargeter(wc);
+                    if(settings.BuildTech)
+                        htmlResult += BuildPrecisionTargeter(wc);
+                    
                     htmlResult += RepairDrones(wc);
                 }catch(Exception ex){
-                    Console.WriteLine(DateTime.Now.ToString("HH:mm:ss ")+"Connection not available/Wrong SID or Server");
+                    Console.WriteLine(DateTime.Now.ToString("HH:mm:ss ")+Username+" | "+"Connection not available/Wrong SID or Server");
                     Console.WriteLine(ex.StackTrace);
                     return "";
                 }
@@ -171,11 +198,11 @@ namespace ConsoleApp1{
 
              htmlResult += wc.DownloadString("https://" + Server + ".darkorbit.com/flashAPI/dailyLogin.php?doBook");
              if(getBetween(htmlResult,"{","true")!= "")
-                Console.Write(DateTime.Now.ToString("HH:mm:ss ")+"Received daily login bonus!\n");
+                Console.Write(DateTime.Now.ToString("HH:mm:ss ")+Username+" | "+"Received daily login bonus!\n");
              else if(getBetween(htmlResult,"{","error")!= "")
-                 Console.Write(DateTime.Now.ToString("HH:mm:ss ")+"Daily login bonus already received!\n");
+                 Console.Write(DateTime.Now.ToString("HH:mm:ss ")+Username+" | "+"Daily login bonus already received!\n");
              else
-                 Console.Write(DateTime.Now.ToString("HH:mm:ss ")+"Unknown error on daily login bonus!\n");
+                 Console.Write(DateTime.Now.ToString("HH:mm:ss ")+Username+" | "+"Unknown error on daily login bonus!\n");
     
              return htmlResult;
          }
@@ -208,8 +235,7 @@ namespace ConsoleApp1{
                  var encodedString =
                      "{\"action\":\"repairDrone\",\"lootId\":\""+lootId+"\",\"repairPrice\":"+drones[i][1]+",\"params\":{\"hi\":"+activeHangarId+"}," +
                      "\"itemId\":\""+drones[i][2]+"\",\"repairCurrency\":\""+drones[i][3]+"\",\"quantity\":1,\"droneLevel\":"+drones[i][4]+"}";
-                 //Console.WriteLine(encodedString);
-                 
+   
                  var plainTextBytes = System.Text.Encoding.UTF8.GetBytes(encodedString);
                  var decodedString = System.Convert.ToBase64String(plainTextBytes);
                  
@@ -218,8 +244,8 @@ namespace ConsoleApp1{
                  htmlResult += wc.UploadString("https://"+Server+".darkorbit.com/flashAPI/inventory.php",
                      "action=repairDrone&params="+decodedString);
                  
-                 Console.WriteLine(DateTime.Now.ToString("HH:mm:ss ")+"Drone repaired (over 94% damage)");
-                 Thread.Sleep(2000);
+                 Console.WriteLine(DateTime.Now.ToString("HH:mm:ss ")+Username+" | "+"Drone repaired (over "+settings.DamagePercentage+" damage)");
+                 Thread.Sleep(4000);
              }
 
              return htmlResult;
@@ -243,17 +269,15 @@ namespace ConsoleApp1{
              var result = JsonConvert.DeserializeObject<dynamic>(decodedString);
              var hangar =string.Empty;
              result = result.SelectToken("data.ret.hangars");//"['8'].general.drones");
-              foreach (JProperty prop in result.Properties())
-              {
+             foreach (JProperty prop in result.Properties()){  
                      hangar=prop.Name;
-              }
-              result = result.SelectToken("['"+hangar+"'].general.drones");
+             }
+             result = result.SelectToken("['"+hangar+"'].general.drones");
               
              List<List<String>> drones= new List<List<String>>(); 
              int i = 0;
-             foreach (JObject item in result)
-             {
-                 if(string.Compare((string) item.GetValue("HP"),"94")==1||string.Compare((string) item.GetValue("HP"),"94")==0){
+             foreach (JObject item in result){   
+                 if(string.Compare((string) item.GetValue("HP"),settings.DamagePercentage.ToString())==1||string.Compare((string) item.GetValue("HP"),settings.DamagePercentage.ToString())==0){
                      drones.Add(new List<String>());
                      drones[i].Add((string) item.GetValue("L"));
                      drones[i].Add((string) item.GetValue("repair"));
@@ -266,19 +290,22 @@ namespace ConsoleApp1{
 
              return drones;
          }
+         
          private string GetActiveHangarId(WebClient wc){
              var htmlResult = string.Empty;
              wc.Headers.Add("Content-Type", "application/x-www-form-urlencoded");
              htmlResult += wc.UploadString("https://"+Server+".darkorbit.com/flashAPI/inventory.php",
                  "action=getHangarList&params=e30%3D");
+             
              byte[] data = Convert.FromBase64String(htmlResult);
              string decodedString = Encoding.UTF8.GetString(data);
+             
              decodedString = decodedString.Replace("\"", "\'");
-             //RootObject root = JsonConvert.DeserializeObject<RootObject>(decodedString);
+             
              dynamic result = JsonConvert.DeserializeObject(decodedString);
+             
              result = result.data.ret.hangars;
-             //Console.WriteLine(result[0].ToString());
-             //Console.WriteLine(result[0].hangar_is_active);
+               
              for(var i=0;i<result.Count;i++){
                  if (result[i].hangar_is_active == true){
                      htmlResult = result[i].hangarID;
@@ -300,7 +327,7 @@ namespace ConsoleApp1{
              var htmlResult = string.Empty;
              
              wc.Headers.Add("Content-Type", "application/x-www-form-urlencoded");
-             Console.WriteLine(DateTime.Now.ToString("HH:mm:ss ")+"Session expired! Relogging in with the same SID");
+             Console.WriteLine(DateTime.Now.ToString("HH:mm:ss ")+Username+" | "+"Session expired! Relogging in with the same SID");
              
              var link2 = doc.DocumentNode.SelectSingleNode("(//form[@action])[1]");
              var a = link2.Attributes["action"].Value;
@@ -316,19 +343,20 @@ namespace ConsoleApp1{
              wc.Headers.Add("Content-Type", "application/x-www-form-urlencoded");
              var result = wc.UploadString("https://"+Server+".darkorbit.com/ajax/nanotechFactory.php", "command=nanoTechFactoryShowBuff&key=RPM&level=1");
              var inProduzione = getBetween(result, "result", "button_build_inactive");
-             if (inProduzione == "")
-             {
+             if (inProduzione == ""){           
                  var doc = new HtmlAgilityPack.HtmlDocument();
                  doc.LoadHtml( result );
                  
                  var link = doc.DocumentNode.SelectSingleNode("(//a[@href])[2]");
                  result = link.Attributes["href"].Value;
+                 
                  result = result.Remove(0, 2);
                  result = result.Remove(result.Length-2);
                  
                  htmlResult += wc.DownloadString("https://" + Server + ".darkorbit.com/" + result);
-                 Console.WriteLine(DateTime.Now.ToString("HH:mm:ss ")+"Precision Targeter tech has been started");
+                 Console.WriteLine(DateTime.Now.ToString("HH:mm:ss ")+Username+" | "+"Precision Targeter tech has been started");
              }
+            
 
              return htmlResult;
          }
@@ -365,39 +393,41 @@ namespace ConsoleApp1{
             var username=string.Empty;
             var password=string.Empty;
             var apiKey=string.Empty;
+            string[] accounts;
+            var lines = 0;
             
-            Console.WriteLine("PushBullet API Key");
-            apiKey=Console.ReadLine();        //add your apikey directly if you don't want to reenter it everytime
-             
-            Console.WriteLine("server"); 
-            server= Console.ReadLine();
-            
-            Console.WriteLine("sid");
-            sid= Console.ReadLine();   
-            
-            Console.WriteLine("username");
-            username= Console.ReadLine();      
-            
-            Console.WriteLine("password");
-            password= Console.ReadLine();
-            
+
             Console.WriteLine(DateTime.Now.ToString("HH:mm:ss ")+"Logging in...");
-            //Account a= new Account(apiKey,server,sid,username,password);
-            Account a= new Account(apiKey,server,sid,username,password);
-            //Account b= new Account("<apikey>","<server>","<sid>","<username>","<password");
-            
-            a.CheckActivity();
-            //b.CheckActivity();
-            
-            StartTimer(a);
-            //StartTimer(b);
-            
+            try{
+                accounts = System.IO.File.ReadAllLines(@"settings.txt");
+                // settings.txt must have 1 account per line with this specifications
+                // apikey;server;sid;username;password;damagePercentagetoRepairdrones;buildTech
+                //                                         from 0 to 99               true or false  
+                
+                lines = accounts.Length;
+                string[] settings = new string[lines];
+
+                foreach (string account in accounts){
+
+                    settings = account.Split(";");
+
+                    Account a = new Account(settings[0], settings[1], settings[2], settings[3], settings[4]);
+                    a.AddSettings(int.Parse(settings[5]), bool.Parse(settings[6]));
+
+                    a.CheckActivity();
+
+                    StartTimer(a);
+                }
+            }catch(Exception ex){ 
+                Console.WriteLine(ex.StackTrace);
+            }
+
             Console.ReadLine();
             
-            void StartTimer(Account account){
+            void StartTimer(Account acc){
                 System.Timers.Timer t = new System.Timers.Timer(TimeSpan.FromMinutes(5).TotalMilliseconds); // Set the time (5 mins in this case)
                 t.AutoReset = true;
-                t.Elapsed += (account.CheckActivity);
+                t.Elapsed += (acc.CheckActivity);
                 t.Start();
             }    
         } 
