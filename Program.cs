@@ -83,9 +83,18 @@ namespace ConsoleApp1{
                             request = new PushNoteRequest{
                                 Email = currentUserInformation.Email,
                                 Title = "SESSION LOST",
-                                Body = DateTime.Now.ToString("HH:mm:ss ")+"Session not found!"
+                                Body = DateTime.Now.ToString("HH:mm:ss ")+Username+" | "+"Session not found!"
                             };
                             Console.WriteLine(DateTime.Now.ToString("HH:mm:ss ")+Username+" | "+"Session not found(SID expired)");
+                            break;
+                        case 2:
+                            request = new PushNoteRequest{
+                                Email = currentUserInformation.Email,
+                                Title = "DRONE REPAIR ERROR",
+                                Body = DateTime.Now.ToString("HH:mm:ss ")+Username+" | "+"Error when repairing drones!!"
+                            };
+                            Console.WriteLine(DateTime.Now.ToString("HH:mm:ss ")+Username+" | "+"Drone repair error. Check your account's uridium/ " +
+                                              "Make sure you haven't set repair percentage at 0 in the .txt");
                             break;
                         default:
                             request = new PushNoteRequest{
@@ -207,21 +216,22 @@ namespace ConsoleApp1{
              return htmlResult;
          }
 
-         private string RepairDrones(WebClient wc){      
+         private string RepairDrones(WebClient wc){
              var htmlResult = string.Empty;
-             
+
              var activeHangarId = GetActiveHangarId(wc);
              var drones = GetDronesOver90Damage(wc, activeHangarId);
-             
+
              var length = drones.Count;
              var lootId = string.Empty;
              var repairPrice = string.Empty;
              var itemId = string.Empty;
              var repairCurrency = string.Empty;
              var droneLevel = string.Empty;
-             
+             var notificationSent = false;
+
              for (var i = 0; i < drones.Count; i++){
-                 
+
                  if (string.Compare(drones[i][0], "2") == 0)
                      lootId = "drone_iris";
                  else if (string.Compare(drones[i][0], "3") == 0)
@@ -230,32 +240,37 @@ namespace ConsoleApp1{
                      lootId = "drone_zeus";
                  else if (string.Compare(drones[i][0], "1") == 0)
                      lootId = "drone_flax";
-                 
-                 
+
+
                  var encodedString =
-                     "{\"action\":\"repairDrone\",\"lootId\":\""+lootId+"\",\"repairPrice\":"+drones[i][1]+",\"params\":{\"hi\":"+activeHangarId+"}," +
-                     "\"itemId\":\""+drones[i][2]+"\",\"repairCurrency\":\""+drones[i][3]+"\",\"quantity\":1,\"droneLevel\":"+drones[i][4]+"}";
-   
+                     "{\"action\":\"repairDrone\",\"lootId\":\"" + lootId + "\",\"repairPrice\":" + drones[i][1] +
+                     ",\"params\":{\"hi\":" + activeHangarId + "}," +
+                     "\"itemId\":\"" + drones[i][2] + "\",\"repairCurrency\":\"" + drones[i][3] +
+                     "\",\"quantity\":1,\"droneLevel\":" + drones[i][4] + "}";
+
                  var plainTextBytes = System.Text.Encoding.UTF8.GetBytes(encodedString);
                  var decodedString = System.Convert.ToBase64String(plainTextBytes);
-                 
+
                  wc.Headers.Add("Content-Type", "application/x-www-form-urlencoded");
-                 
-                 htmlResult += wc.UploadString("https://"+Server+".darkorbit.com/flashAPI/inventory.php",
-                     "action=repairDrone&params="+decodedString);
-                 
+
+                 htmlResult += wc.UploadString("https://" + Server + ".darkorbit.com/flashAPI/inventory.php",
+                     "action=repairDrone&params=" + decodedString);
+
                  byte[] data = Convert.FromBase64String(htmlResult);
                  decodedString = Encoding.UTF8.GetString(data);
                  decodedString = decodedString.Replace("\"", "\'");
+
+                 if (getBetween(decodedString, "'isError':1", "'data'") != ""){
+                     if (notificationSent == false){
+                         SendNotification(2);
+                         notificationSent = true;
+                     }
+                 }else
+                     Console.WriteLine(DateTime.Now.ToString("HH:mm:ss ") + Username + " | " + "Drone repaired (over " +
+                                       settings.DamagePercentage + " damage)");
                  
-                 if(getBetween(decodedString,"'isError':1","'data'")!="")
-                     Console.WriteLine(DateTime.Now.ToString("HH:mm:ss ")+Username+" | "+"Drone repair error. Check your account's uridium/ " +
-                                       "Make sure you haven't set repair percentage at 0 in the .txt");
-                 else
-                     Console.WriteLine(DateTime.Now.ToString("HH:mm:ss ")+Username+" | "+"Drone repaired (over "+settings.DamagePercentage+" damage)");}
-             
                  Thread.Sleep(5000);
-             
+             }
 
              return htmlResult;
          }
