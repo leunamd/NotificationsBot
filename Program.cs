@@ -253,14 +253,14 @@ namespace ConsoleApp1{
 
                  wc.Headers.Add("Content-Type", "application/x-www-form-urlencoded");
 
-                 htmlResult += wc.UploadString("https://" + Server + ".darkorbit.com/flashAPI/inventory.php",
+                 htmlResult = wc.UploadString("https://" + Server + ".darkorbit.com/flashAPI/inventory.php",
                      "action=repairDrone&params=" + decodedString);
 
                  byte[] data = Convert.FromBase64String(htmlResult);
                  decodedString = Encoding.UTF8.GetString(data);
                  decodedString = decodedString.Replace("\"", "\'");
 
-                 if (getBetween(decodedString, "'isError':1", "'data'") != ""){
+                 if (getBetween(decodedString, "'isError':1", "'data'") != ""||getBetween(decodedString, "'isError':1", "'error'") != ""){
                      if (notificationSent == false){
                          SendNotification(2);
                          notificationSent = true;
