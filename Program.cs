@@ -102,7 +102,7 @@ namespace ConsoleApp1{
             }catch(Exception ex){
                 Console.WriteLine(DateTime.Now.ToString("HH:mm:ss ")+Username+" | "+"API key not found. Go here to generate" +
                                  " your api key and sync your accounts: https://www.pushbullet.com/#settings/account");
-                Console.WriteLine(ex.StackTrace);
+                Console.WriteLine(ex);
            }
         }
          
@@ -185,7 +185,7 @@ namespace ConsoleApp1{
                     htmlResult += RepairDrones(wc);
                 }catch(Exception ex){
                     Console.WriteLine(DateTime.Now.ToString("HH:mm:ss ")+Username+" | "+"Connection not available/Wrong SID or Server");
-                    Console.WriteLine(ex.StackTrace);
+                    Console.WriteLine(ex);
                     return "";
                 }
                 return htmlResult;
@@ -387,15 +387,9 @@ namespace ConsoleApp1{
        
         static void Main(string[] args){
             
-            var sid=string.Empty;
-            var server=string.Empty;
-            var crediti=string.Empty;
-            var username=string.Empty;
-            var password=string.Empty;
-            var apiKey=string.Empty;
             string[] accounts;
             var lines = 0;
-            
+            var i = 0;
 
             Console.WriteLine(DateTime.Now.ToString("HH:mm:ss ")+"Logging in...");
             try{
@@ -406,24 +400,59 @@ namespace ConsoleApp1{
                 
                 lines = accounts.Length;
                 string[] settings = new string[lines];
-
+                Account[] a = new Account[lines];
+                
                 foreach (string account in accounts){
 
                     settings = account.Split(";");
+                    
+                    a[i] = new Account(settings[0], settings[1], settings[2], settings[3], settings[4]);
+                    a[i].AddSettings(int.Parse(settings[5]), bool.Parse(settings[6]));
+                    
+                    a[i].CheckActivity();
+                    
+                    StartTimer(a[i]);
+                    
+                    i++;
+                }
+                
+                while (true){
+                    var sid=Console.ReadLine();
+                    var answer = string.Empty;
+                    var newSid = string.Empty;
+                    var oldSid = string.Empty;
+                    
+                    if (sid == "sid"){
+                        Console.WriteLine("Which account would you like to change? Insert number (starting from 1)");
+                        var accountNumber=int.Parse(Console.ReadLine());
+                        var accountName = a[accountNumber - 1].Username;
+                        
+                        do{
+                            Console.WriteLine("Do you want to change " + accountName + " sid? y/n");
+                            answer = Console.ReadLine();
+                        } while (answer!="Y"&&answer!="y"); 
+                        
+                        do{
+                            Console.WriteLine("Write the new sid!");
+                            newSid = Console.ReadLine();
+                        } while (newSid.Length != 32);
+            
+                        oldSid = a[accountNumber - 1].Sid;
+                        a[accountNumber - 1].Sid = newSid;
 
-                    Account a = new Account(settings[0], settings[1], settings[2], settings[3], settings[4]);
-                    a.AddSettings(int.Parse(settings[5]), bool.Parse(settings[6]));
+                        accounts[accountNumber - 1] = accounts[accountNumber - 1].Replace(oldSid,newSid);
+                        System.IO.File.WriteAllLines(@"settings.txt", accounts);
+                        Console.WriteLine(a[accountNumber - 1].Username+" "+a[accountNumber - 1].Sid + " OldSid: "+oldSid);
 
-                    a.CheckActivity();
-
-                    StartTimer(a);
+                    }
+                
                 }
             }catch(Exception ex){ 
-                Console.WriteLine(ex.StackTrace);
+                Console.WriteLine(ex);
             }
 
-            Console.ReadLine();
-            
+           
+
             void StartTimer(Account acc){
                 System.Timers.Timer t = new System.Timers.Timer(TimeSpan.FromMinutes(5).TotalMilliseconds); // Set the time (5 mins in this case)
                 t.AutoReset = true;
