@@ -75,7 +75,7 @@ namespace ConsoleApp1{
                             request = new PushNoteRequest{
                                 Email = currentUserInformation.Email,
                                 Title = "INACTIVE",
-                                Body = DateTime.Now.ToString("HH:mm:ss ")+"Bot has been inactive for 5 minutes!"
+                                Body = DateTime.Now.ToString("HH:mm:ss ")+Username+" | "+"Bot has been inactive for 5 minutes!"
                             };
                             Console.WriteLine(DateTime.Now.ToString("HH:mm:ss ")+Username+" | "+"Inactive");
                             break;
@@ -244,9 +244,18 @@ namespace ConsoleApp1{
                  htmlResult += wc.UploadString("https://"+Server+".darkorbit.com/flashAPI/inventory.php",
                      "action=repairDrone&params="+decodedString);
                  
-                 Console.WriteLine(DateTime.Now.ToString("HH:mm:ss ")+Username+" | "+"Drone repaired (over "+settings.DamagePercentage+" damage)");
-                 Thread.Sleep(4000);
-             }
+                 byte[] data = Convert.FromBase64String(htmlResult);
+                 decodedString = Encoding.UTF8.GetString(data);
+                 decodedString = decodedString.Replace("\"", "\'");
+                 
+                 if(getBetween(decodedString,"'isError':1","'data'")!="")
+                     Console.WriteLine(DateTime.Now.ToString("HH:mm:ss ")+Username+" | "+"Drone repair error. Check your account's uridium/ " +
+                                       "Make sure you haven't set repair percentage at 0 in the .txt");
+                 else
+                     Console.WriteLine(DateTime.Now.ToString("HH:mm:ss ")+Username+" | "+"Drone repaired (over "+settings.DamagePercentage+" damage)");}
+             
+                 Thread.Sleep(5000);
+             
 
              return htmlResult;
          }
