@@ -13,7 +13,7 @@ Features:
 -Supports multiple acconts at once (1 account per line)  
 -Change sid of current accounts by typing sid in the console  
 
-Settings.txt example:
+Settings.txt example:  
 apikey(pushbullet);server;sid;username;password;damagePercentagetoRepairdrones(0-99);buildTech(true/false)
 
 
