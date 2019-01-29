@@ -93,8 +93,7 @@ namespace ConsoleApp1{
                                 Title = "DRONE REPAIR ERROR",
                                 Body = DateTime.Now.ToString("HH:mm:ss ")+Username+" | "+"Error when repairing drones!!"
                             };
-                            Console.WriteLine(DateTime.Now.ToString("HH:mm:ss ")+Username+" | "+"Drone repair error. Check your account's uridium/ " +
-                                              "Make sure you haven't set repair percentage at 0 in the .txt");
+                            
                             break;
                         default:
                             request = new PushNoteRequest{
@@ -260,15 +259,19 @@ namespace ConsoleApp1{
                  decodedString = Encoding.UTF8.GetString(data);
                  decodedString = decodedString.Replace("\"", "\'");
 
-                 if (getBetween(decodedString, "'isError':1", "'data'") != ""||getBetween(decodedString, "'isError':1", "'error'") != ""){
+                 if (getBetween(decodedString, "'isError':0", "'data'")!=""){
+                     Console.WriteLine(DateTime.Now.ToString("HH:mm:ss ") + Username + " | " + "Drone repaired (over " +
+                                       settings.DamagePercentage + " damage)");
+                 }else{
+                     Console.WriteLine(DateTime.Now.ToString("HH:mm:ss ") + Username + " | " +
+                                       "Drone repair error. Check your account's uridium/ " +
+                                       "Make sure you haven't set repair percentage at 0 in the .txt");
                      if (notificationSent == false){
                          SendNotification(2);
                          notificationSent = true;
                      }
-                 }else
-                     Console.WriteLine(DateTime.Now.ToString("HH:mm:ss ") + Username + " | " + "Drone repaired (over " +
-                                       settings.DamagePercentage + " damage)");
-                 
+                 }
+
                  Thread.Sleep(5000);
              }
 
@@ -292,7 +295,7 @@ namespace ConsoleApp1{
              
              var result = JsonConvert.DeserializeObject<dynamic>(decodedString);
              var hangar =string.Empty;
-             result = result.SelectToken("data.ret.hangars");//"['8'].general.drones");
+             result = result.SelectToken("data.ret.hangars");
              foreach (JProperty prop in result.Properties()){  
                      hangar=prop.Name;
              }
@@ -425,17 +428,23 @@ namespace ConsoleApp1{
                 lines = accounts.Length;
                 string[] settings = new string[lines];
                 Account[] a = new Account[lines];
-                
+
                 foreach (string account in accounts){
 
                     settings = account.Split(";");
+
+                    if (settings.Length == 7){
+                        a[i] = new Account(settings[0], settings[1], settings[2], settings[3], settings[4]);
+                        a[i].AddSettings(int.Parse(settings[5]), bool.Parse(settings[6]));
+
+                         a[i].CheckActivity();
+
+                        StartTimer(a[i]);
+                    }else
+                        Console.WriteLine("Incorrect account format at line:"+(i+1)+
+                                          "\tCorrect Format is:\n"+
+                                          "apikey(pushBullet);server;sid;username;password;damagePercentagetoRepairdrones(0-99);buildTech(true/false)");
                     
-                    a[i] = new Account(settings[0], settings[1], settings[2], settings[3], settings[4]);
-                    a[i].AddSettings(int.Parse(settings[5]), bool.Parse(settings[6]));
-                    
-                    a[i].CheckActivity();
-                    
-                    StartTimer(a[i]);
                     
                     i++;
                 }
