@@ -452,21 +452,24 @@ namespace ConsoleApp1{
                 foreach (string account in accounts){
 
                     settings = account.Split(";");
-
                     if (settings.Length == 7){
-                        a[i] = new Account(settings[0], settings[1], settings[2], settings[3], settings[4]);
-                        
-                        a[i].AddSettings(int.Parse(settings[5]), bool.Parse(settings[6]));
-                        
-                         a[i].CheckActivity();
+                        settings[5] = Regex.Replace(settings[5], "[^0-9]", "");
+                        if (settings[2].Length == 32 && int.Parse(settings[5]) >= 0 && int.Parse(settings[5]) <= 99 && (settings[6] == "true" || settings[6] == "false")){
+                            a[i] = new Account(settings[0], settings[1], settings[2], settings[3], settings[4]);
 
-                        StartTimer(a[i]);
-                    }else
-                        Console.WriteLine("Incorrect account format at line:"+(i+1)+
-                                          "\tCorrect Format is:\n"+
+                            a[i].AddSettings(int.Parse(settings[5]), bool.Parse(settings[6]));
+
+                            a[i].CheckActivity();
+
+                            StartTimer(a[i]);
+                        }else
+                            Console.WriteLine("Incorrect account format at line:" + (i + 1) +
+                                              "\tCorrect Format is:\n" +
+                                              "apikey(pushBullet);server;sid;username;password;damagePercentagetoRepairdrones(0-99);buildTech(true/false)");
+                    }else 
+                        Console.WriteLine("Incorrect account format at line:" + (i + 1) +
+                                          "\tCorrect Format is:\n" +
                                           "apikey(pushBullet);server;sid;username;password;damagePercentagetoRepairdrones(0-99);buildTech(true/false)");
-                    
-                    
                     i++;
                 }
                 
