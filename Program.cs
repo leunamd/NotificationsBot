@@ -228,7 +228,9 @@ namespace ConsoleApp1{
              var repairCurrency = string.Empty;
              var droneLevel = string.Empty;
              var notificationSent = false;
-
+             
+             Thread.Sleep(4000);
+             
              for (var i = 0; i < drones.Count; i++){
 
                  if (string.Compare(drones[i][0], "2") == 0)
@@ -291,9 +293,11 @@ namespace ConsoleApp1{
              
              byte[] data = Convert.FromBase64String(htmlResult);
              decodedString = Encoding.UTF8.GetString(data);
+             
              decodedString = decodedString.Replace("\"", "\'");
              
              var result = JsonConvert.DeserializeObject<dynamic>(decodedString);
+             
              var hangar =string.Empty;
              result = result.SelectToken("data.ret.hangars");
              foreach (JProperty prop in result.Properties()){  
@@ -303,8 +307,12 @@ namespace ConsoleApp1{
               
              List<List<String>> drones= new List<List<String>>(); 
              int i = 0;
-             foreach (JObject item in result){   
-                 if(string.Compare((string) item.GetValue("HP"),settings.DamagePercentage.ToString())==1||string.Compare((string) item.GetValue("HP"),settings.DamagePercentage.ToString())==0){
+             foreach (JObject item in result){
+                 var tmp = (string)item.GetValue("HP");
+                 tmp = tmp.Remove(tmp.Length - 1);
+                 int tmp2 = Int32.Parse(tmp);
+                 
+                 if(tmp2>=settings.DamagePercentage){
                      drones.Add(new List<String>());
                      drones[i].Add((string) item.GetValue("L"));
                      drones[i].Add((string) item.GetValue("repair"));
@@ -317,29 +325,41 @@ namespace ConsoleApp1{
 
              return drones;
          }
-         
+
          private string GetActiveHangarId(WebClient wc){
              var htmlResult = string.Empty;
              wc.Headers.Add("Content-Type", "application/x-www-form-urlencoded");
-             htmlResult += wc.UploadString("https://"+Server+".darkorbit.com/flashAPI/inventory.php",
+             htmlResult += wc.UploadString("https://" + Server + ".darkorbit.com/flashAPI/inventory.php",
                  "action=getHangarList&params=e30%3D");
-             
+
              byte[] data = Convert.FromBase64String(htmlResult);
              string decodedString = Encoding.UTF8.GetString(data);
-             
+
              decodedString = decodedString.Replace("\"", "\'");
              
              dynamic result = JsonConvert.DeserializeObject(decodedString);
-             
              result = result.data.ret.hangars;
-               
-             for(var i=0;i<result.Count;i++){
-                 if (result[i].hangar_is_active == true){
-                     htmlResult = result[i].hangarID;
+             
+             if (getBetween(decodedString, "'hangars':[", "hangarID") != ""){
+                 
+                 for (var i = 0; i < result.Count; i++){
+                     if (result[i].hangar_is_active == true){
+                         htmlResult = result[i].hangarID;
+                     }
+                 }
+
+             }else{
+                 
+                 foreach (var hangars in result){
+                     foreach (var hangar in hangars){
+                         var activeHangar = hangar.GetValue("hangar_is_active");
+                         if (activeHangar == true)
+                             htmlResult = hangar.GetValue("hangarID").ToString();
+                     }
                  }
              }
-             
-             return htmlResult;
+ 
+         return htmlResult;
          }
          private string Login(WebClient wc){
              var htmlResult = string.Empty;
@@ -435,8 +455,9 @@ namespace ConsoleApp1{
 
                     if (settings.Length == 7){
                         a[i] = new Account(settings[0], settings[1], settings[2], settings[3], settings[4]);
+                        
                         a[i].AddSettings(int.Parse(settings[5]), bool.Parse(settings[6]));
-
+                        
                          a[i].CheckActivity();
 
                         StartTimer(a[i]);
@@ -476,6 +497,7 @@ namespace ConsoleApp1{
                         accounts[accountNumber - 1] = accounts[accountNumber - 1].Replace(oldSid,newSid);
                         System.IO.File.WriteAllLines(@"settings.txt", accounts);
                         Console.WriteLine(a[accountNumber - 1].Username+" new sid: "+a[accountNumber - 1].Sid);
+                        
 
                     }
                 
