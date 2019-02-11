@@ -14,7 +14,7 @@ Features:
 -Change sid of current accounts by typing sid in the console  
 
 Settings.txt example:  
-apikey(pushbullet);server;sid;username;password;damagePercentagetoRepairdrones(0-99);buildTech(true/false)
+apikey(pushbullet);server;sid;username;password;repairDronePercentage(0-99);buildTech(true/false);buildSkylab(true/false)
 
 
 Framework needed:
