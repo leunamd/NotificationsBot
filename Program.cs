@@ -74,6 +74,7 @@ namespace ConsoleApp1{
 
         public void AddSettings(int damagePercentage,bool buildTech,bool buildSkylab){
             settings = new Settings(damagePercentage,buildTech,buildSkylab);
+            Console.Title = (DateTime.Now.ToString("HH:mm:ss") + " | " + Username + " | " + Server);
         }
         
          private void SendNotification(int i){                     //0=inactivty 1=session lost
