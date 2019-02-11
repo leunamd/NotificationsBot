@@ -1,1 +1,1 @@
-apikey;server;sid;username;password;damagePercentagetoRepairdrones(0-99);buildTech(true/false)                                   
+apikey;server;sid;username;password;repairDronePercentage;buildTech(true/false);buildSkylab(true/false)

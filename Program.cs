@@ -29,11 +29,23 @@ namespace ConsoleApp1{
         }
 
         private bool buildTech;
-        
-        public Settings(int damagePercentage,bool buildTech){
+
+        private bool buildSkylab;
+
+        public bool BuildSkylab
+        {
+            get => buildSkylab;
+            set => buildSkylab = value;
+        }
+        public Settings(int damagePercentage,bool buildTech, bool buildSkylab){
             DamagePercentage = damagePercentage;
             BuildTech = buildTech;
+            BuildSkylab = buildSkylab;
         }
+
+        
+
+
     }
     public class Account{
         
@@ -46,6 +58,8 @@ namespace ConsoleApp1{
         private string crediti=string.Empty;
         private string username=string.Empty;
         private string password=string.Empty;
+
+        private int extraEnergy = 0;
          
         private int c=0;
         
@@ -58,8 +72,8 @@ namespace ConsoleApp1{
             Password = password;
         }
 
-        public void AddSettings(int damagePercentage,bool buildTech){
-            settings = new Settings(damagePercentage,buildTech);
+        public void AddSettings(int damagePercentage,bool buildTech,bool buildSkylab){
+            settings = new Settings(damagePercentage,buildTech,buildSkylab);
         }
         
          private void SendNotification(int i){                     //0=inactivty 1=session lost
@@ -121,16 +135,22 @@ namespace ConsoleApp1{
              doc.LoadHtml( htmlResult );
              if(htmlResult!=""){
                  var credits= doc.DocumentNode.SelectSingleNode("(//div[@id=\"header_credits\"])").InnerText; 
-                 
-                 credits=credits.Replace(" ",string.Empty);
-                 credits = Regex.Replace(credits, @"\n", "");    
-                 if (C == 0){
-                     Console.WriteLine(DateTime.Now.ToString("HH:mm:ss ")+Username+" | "+credits);
+                 var uridium = doc.DocumentNode.SelectSingleNode("(//a[@id=\"header_uri\"])").InnerText;
+
+                 credits =credits.Replace(" ",string.Empty);
+                 credits = Regex.Replace(credits, @"\n", "");
+
+                uridium = uridium.Replace(" ", string.Empty);
+                uridium = Regex.Replace(uridium, @"\n", "");            
+                
+
+                if (C == 0){
+                     Console.WriteLine(DateTime.Now.ToString("HH:mm:ss ")+Username+" | Credits: "+credits+" - Uridium: "+uridium+ " - Extra Energy: "+ExtraEnergy);
                      credits=credits.Replace(".",string.Empty);
                      Crediti=credits;        
                      C++;
                  }else{
-                     Console.WriteLine(DateTime.Now.ToString("HH:mm:ss ")+Username+" | "+credits);
+                     Console.WriteLine(DateTime.Now.ToString("HH:mm:ss ")+Username+ " | Credits: " +credits+ " - Uridium: " +uridium+" - Extra Energy: "+ExtraEnergy);
                      credits=credits.Replace(".",string.Empty);       
                      if(string.Compare(Crediti,credits)==0)
                          SendNotification(0);
@@ -144,54 +164,78 @@ namespace ConsoleApp1{
          }
          
          public void CheckActivity(object source, ElapsedEventArgs e){
-             var htmlResult = GetHtmlSource();
-             
-             var doc = new HtmlAgilityPack.HtmlDocument();
-             doc.LoadHtml( htmlResult );
-             if(htmlResult!=""){
-                 var credits= doc.DocumentNode.SelectSingleNode("(//div[@id=\"header_credits\"])").InnerText; 
-                 
-                 credits=credits.Replace(" ",string.Empty);
-                 credits = Regex.Replace(credits, @"\n", "");    
-                 if (C == 0){
-                     Console.WriteLine(DateTime.Now.ToString("HH:mm:ss ")+Username+" | " + "Logged in");
-                     Crediti=credits;
-                     C++;
-                 }else{
-                     C++;
-                     Console.WriteLine(DateTime.Now.ToString("HH:mm:ss ")+Username+" | "+credits);
-                     credits=credits.Replace(".",string.Empty);       
-                     if(string.Compare(Crediti,credits)==0)
-                         SendNotification(0);
-                     else
-                         Crediti=credits;                
-                 }
-             }else{
-                 //notifica cell perchè sloggato
-                 SendNotification(1);
-             }
-         }
+            var htmlResult = GetHtmlSource();
+
+            var doc = new HtmlAgilityPack.HtmlDocument();
+            doc.LoadHtml(htmlResult);
+            if (htmlResult != "")
+            {
+                var credits = doc.DocumentNode.SelectSingleNode("(//div[@id=\"header_credits\"])").InnerText;
+                var uridium = doc.DocumentNode.SelectSingleNode("(//a[@id=\"header_uri\"])").InnerText;
+
+                credits = credits.Replace(" ", string.Empty);
+                credits = Regex.Replace(credits, @"\n", "");
+
+                uridium = uridium.Replace(" ", string.Empty);
+                uridium = Regex.Replace(uridium, @"\n", "");
+
+
+                if (C == 0)
+                {
+                    Console.WriteLine(DateTime.Now.ToString("HH:mm:ss ") + Username + " | Credits: " + credits + " - Uridium: " + uridium + " - Extra Energy: " + ExtraEnergy);
+                    credits = credits.Replace(".", string.Empty);
+                    Crediti = credits;
+                    C++;
+                }
+                else
+                {
+                    Console.WriteLine(DateTime.Now.ToString("HH:mm:ss ") + Username + " | Credits: " + credits + " - Uridium: " + uridium + " - Extra Energy: " + ExtraEnergy);
+                    credits = credits.Replace(".", string.Empty);
+                    if (string.Compare(Crediti, credits) == 0)
+                        SendNotification(0);
+                    else
+                        Crediti = credits;
+                }
+            }
+            else
+            {
+                //notifica cell perchè sloggato
+                SendNotification(1);
+            }
+        }
          
          private string  GetHtmlSource(){
              
-            using (var wc = new WebClient()){      
-
+            using (var wc = new WebClient()){
+                var xmlResult = "";
                 var htmlResult = "";
                 try{
                     htmlResult += Login(wc);
                     var doc1 = new HtmlAgilityPack.HtmlDocument();
                     doc1.LoadHtml(htmlResult);
                      
-                    if (getBetween(doc1.Text, "html", "header_credits") == "")
+                    if (GetBetween(doc1.Text, "html", "header_credits") == "")
                         htmlResult += LoginWhenExpired(wc,doc1);
-                    if((C % 72)==0)                    // Checks at first runtime and every 6 hours
+                        doc1.LoadHtml(htmlResult);
+
+                    if ((C % 72)==0)                    // Checks at first runtime and every 6 hours
                         htmlResult += DailyLoginBonus(wc);
-                    
+
+                    if(settings.BuildSkylab)
+                        htmlResult += BuildSkyLab(wc);
+
                     if(settings.BuildTech)
                         htmlResult += BuildPrecisionTargeter(wc);
                     
                     htmlResult += RepairDrones(wc);
-                }catch(Exception ex){
+
+                    var userId = doc1.DocumentNode.SelectSingleNode("//div[contains(@class, 'header_item_wrapper')]//span").InnerText;
+                    xmlResult += wc.DownloadString("https://" + Server + ".darkorbit.com/flashinput/galaxyGates.php?userID=" + userId + "&action=init&sid=" + Sid);
+                    doc1.LoadHtml(xmlResult);
+                    ExtraEnergy = int.Parse(doc1.DocumentNode.SelectSingleNode("//samples").InnerText);
+
+                }
+                catch(Exception ex){
                     Console.WriteLine(DateTime.Now.ToString("HH:mm:ss ")+Username+" | "+"Connection not available/Wrong SID or Server");
                     Console.WriteLine(ex);
                     return "";
@@ -205,9 +249,9 @@ namespace ConsoleApp1{
              var htmlResult = string.Empty;
 
              htmlResult += wc.DownloadString("https://" + Server + ".darkorbit.com/flashAPI/dailyLogin.php?doBook");
-             if(getBetween(htmlResult,"{","true")!= "")
+             if(GetBetween(htmlResult,"{","true")!= "")
                 Console.Write(DateTime.Now.ToString("HH:mm:ss ")+Username+" | "+"Received daily login bonus!\n");
-             else if(getBetween(htmlResult,"{","error")!= "")
+             else if(GetBetween(htmlResult,"{","error")!= "")
                  Console.Write(DateTime.Now.ToString("HH:mm:ss ")+Username+" | "+"Daily login bonus already received!\n");
              else
                  Console.Write(DateTime.Now.ToString("HH:mm:ss ")+Username+" | "+"Unknown error on daily login bonus!\n");
@@ -261,7 +305,7 @@ namespace ConsoleApp1{
                  decodedString = Encoding.UTF8.GetString(data);
                  decodedString = decodedString.Replace("\"", "\'");
 
-                 if (getBetween(decodedString, "'isError':0", "'data'")!=""){
+                 if (GetBetween(decodedString, "'isError':0", "'data'")!=""){
                      Console.WriteLine(DateTime.Now.ToString("HH:mm:ss ") + Username + " | " + "Drone repaired (over " +
                                        settings.DamagePercentage + " damage)");
                  }else{
@@ -300,27 +344,43 @@ namespace ConsoleApp1{
              
              var hangar =string.Empty;
              result = result.SelectToken("data.ret.hangars");
-             foreach (JProperty prop in result.Properties()){  
-                     hangar=prop.Name;
-             }
-             result = result.SelectToken("['"+hangar+"'].general.drones");
-              
-             List<List<String>> drones= new List<List<String>>(); 
+             
+             List<List<String>> drones = new List<List<String>>();
              int i = 0;
-             foreach (JObject item in result){
-                 var tmp = (string)item.GetValue("HP");
-                 tmp = tmp.Remove(tmp.Length - 1);
-                 int tmp2 = Int32.Parse(tmp);
+             
+             if (GetBetween(decodedString, "'hangars':[", "hangarID") != ""){
+                 Console.ReadLine();
                  
-                 if(tmp2>=settings.DamagePercentage){
-                     drones.Add(new List<String>());
-                     drones[i].Add((string) item.GetValue("L"));
-                     drones[i].Add((string) item.GetValue("repair"));
-                     drones[i].Add((string) item.GetValue("I"));
-                     drones[i].Add((string) item.GetValue("currency"));
-                     drones[i].Add((string) item.GetValue("LV"));
-                     i++;
+                 for (i = 0; i < result.Count; i++){
+                     if (result[i].hangar_is_active == true){
+                         result = result.SelectToken("["+i+"].general.drones");
+                         Console.WriteLine(i );
+                     }
                  }
+             }
+             else{
+
+                 foreach (JProperty prop in result.Properties()){
+                     hangar = prop.Name;
+                 }
+
+                 result = result.SelectToken("['" + hangar + "'].general.drones");
+             }
+
+             i = 0;
+             foreach (JObject item in result){
+                var tmp = (string) item.GetValue("HP");
+                tmp = tmp.Remove(tmp.Length - 1);
+                int tmp2 = Int32.Parse(tmp);
+                if (tmp2 >= settings.DamagePercentage){
+                    drones.Add(new List<String>());
+                    drones[i].Add((string) item.GetValue("L"));
+                    drones[i].Add((string) item.GetValue("repair"));
+                    drones[i].Add((string) item.GetValue("I"));
+                    drones[i].Add((string) item.GetValue("currency"));
+                    drones[i].Add((string) item.GetValue("LV"));
+                    i++;
+                }
              }
 
              return drones;
@@ -340,7 +400,7 @@ namespace ConsoleApp1{
              dynamic result = JsonConvert.DeserializeObject(decodedString);
              result = result.data.ret.hangars;
              
-             if (getBetween(decodedString, "'hangars':[", "hangarID") != ""){
+             if (GetBetween(decodedString, "'hangars':[", "hangarID") != ""){
                  
                  for (var i = 0; i < result.Count; i++){
                      if (result[i].hangar_is_active == true){
@@ -386,10 +446,10 @@ namespace ConsoleApp1{
 
          private string BuildPrecisionTargeter(WebClient wc){
              var htmlResult = string.Empty;
-             
+                        
              wc.Headers.Add("Content-Type", "application/x-www-form-urlencoded");
              var result = wc.UploadString("https://"+Server+".darkorbit.com/ajax/nanotechFactory.php", "command=nanoTechFactoryShowBuff&key=RPM&level=1");
-             var inProduzione = getBetween(result, "result", "button_build_inactive");
+             var inProduzione = GetBetween(result, "result", "button_build_inactive");
              if (inProduzione == ""){           
                  var doc = new HtmlAgilityPack.HtmlDocument();
                  doc.LoadHtml( result );
@@ -408,7 +468,39 @@ namespace ConsoleApp1{
              return htmlResult;
          }
          
-         private static string getBetween(string strSource, string strStart, string strEnd){
+         private string BuildSkyLab(WebClient wc){
+             var htmlResult = string.Empty;
+
+             var result = wc.DownloadString("https://" + Server + ".darkorbit.com/indexInternal.es?action=internalSkylab");
+             
+             var doc = new HtmlAgilityPack.HtmlDocument();
+             doc.LoadHtml( result );
+             var upgrades = doc.DocumentNode.SelectNodes("//a[contains(@href,\"subaction=upgrade\")]");
+
+             var transport = doc.DocumentNode.SelectSingleNode("//input[@name=\"reloadToken\"]");
+             var token = transport.Attributes["value"].Value;
+
+             wc.Headers.Add("Content-Type", "application/x-www-form-urlencoded");
+             Thread.Sleep(3000);
+             //htmlResult+= wc.UploadString("https://" + Server + ".darkorbit.com/indexInternal.es",
+             //    "reloadToken="+token+"&reloadToken="+token+"&action=internalSkylab&subaction=startTransport&mode=normal&construction=TRANSPORT_MODULE&count_prometium=0&count_endurium=0&count_terbium=0&count_prometid=0&count_duranium=0&count_xenomit=0&count_promerium="+100+"&count_seprom=0");
+             
+             if (upgrades == null)
+                 return htmlResult;
+             
+             foreach (var upgrade in upgrades){
+                 result = upgrade.Attributes["href"].Value;
+                 result = result.Replace("&amp;", "&");
+                 Thread.Sleep(2000);
+                 wc.DownloadString("https://" + Server + ".darkorbit.com/"+result);
+             }
+             
+            
+
+             return htmlResult;
+         }
+         
+         private static string GetBetween(string strSource, string strStart, string strEnd){
     
              int Start, End;
              if (strSource.Contains(strStart) && strSource.Contains(strEnd))
@@ -427,6 +519,7 @@ namespace ConsoleApp1{
         public string Crediti { get; set; }   
         public string Username { get; set; }     
         public string Password { get; set; }
+        public int ExtraEnergy { get; set; }
     }
     
     
@@ -437,13 +530,13 @@ namespace ConsoleApp1{
             string[] accounts;
             var lines = 0;
             var i = 0;
-
+            Console.WriteLine("v1.3.6");
             Console.WriteLine(DateTime.Now.ToString("HH:mm:ss ")+"Logging in...");
             try{
                 accounts = System.IO.File.ReadAllLines(@"settings.txt");
                 // settings.txt must have 1 account per line with this specifications
-                // apikey;server;sid;username;password;damagePercentagetoRepairdrones;buildTech
-                //                                         from 0 to 99               true or false  
+                // apikey;server;sid;username;password;repairDronePercentage;buildTech;buildSkylab
+                //                                         
                 
                 lines = accounts.Length;
                 string[] settings = new string[lines];
@@ -452,12 +545,12 @@ namespace ConsoleApp1{
                 foreach (string account in accounts){
 
                     settings = account.Split(";");
-                    if (settings.Length == 7){
+                    if (settings.Length == 8){
                         settings[5] = Regex.Replace(settings[5], "[^0-9]", "");
-                        if (settings[2].Length == 32 && int.Parse(settings[5]) >= 0 && int.Parse(settings[5]) <= 99 && (settings[6] == "true" || settings[6] == "false")){
+                        if (settings[2].Length == 32 && int.Parse(settings[5]) >= 0 && int.Parse(settings[5]) <= 99 && (settings[6] == "true" || settings[6] == "false") && (settings[7] == "true" || settings[7] == "false")){
                             a[i] = new Account(settings[0], settings[1], settings[2], settings[3], settings[4]);
 
-                            a[i].AddSettings(int.Parse(settings[5]), bool.Parse(settings[6]));
+                            a[i].AddSettings(int.Parse(settings[5]), bool.Parse(settings[6]), bool.Parse(settings[7]));
 
                             a[i].CheckActivity();
 
@@ -465,11 +558,11 @@ namespace ConsoleApp1{
                         }else
                             Console.WriteLine("Incorrect account format at line:" + (i + 1) +
                                               "\tCorrect Format is:\n" +
-                                              "apikey(pushBullet);server;sid;username;password;damagePercentagetoRepairdrones(0-99);buildTech(true/false)");
+                                              "apikey;server;sid;username;password;repairDronePercentage;buildTech(true/false);buildSkylab(true/false)");
                     }else 
                         Console.WriteLine("Incorrect account format at line:" + (i + 1) +
                                           "\tCorrect Format is:\n" +
-                                          "apikey(pushBullet);server;sid;username;password;damagePercentagetoRepairdrones(0-99);buildTech(true/false)");
+                                          "apikey;server;sid;username;password;repairDronePercentage;buildTech(true/false);buildSkylab(true/false)");
                     i++;
                 }
                 
@@ -512,8 +605,10 @@ namespace ConsoleApp1{
            
 
             void StartTimer(Account acc){
-                System.Timers.Timer t = new System.Timers.Timer(TimeSpan.FromMinutes(5).TotalMilliseconds); // Set the time (5 mins in this case)
-                t.AutoReset = true;
+                System.Timers.Timer t = new System.Timers.Timer(TimeSpan.FromMinutes(5).TotalMilliseconds)
+                {
+                    AutoReset = true
+                }; // Set the time (5 mins in this case)
                 t.Elapsed += (acc.CheckActivity);
                 t.Start();
             }    
