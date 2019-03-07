@@ -58,6 +58,7 @@ namespace ConsoleApp1{
         private string crediti=string.Empty;
         private string username=string.Empty;
         private string password=string.Empty;
+        private string rPoints=string.Empty;
 
         private int extraEnergy = 0;
          
@@ -145,12 +146,12 @@ namespace ConsoleApp1{
                 
 
                 if (C == 0){
-                     Console.WriteLine(DateTime.Now.ToString("HH:mm:ss ")+Username+" | Credits: "+credits+" - Uridium: "+uridium+ " - Extra Energy: "+ExtraEnergy);
+                     Console.WriteLine(DateTime.Now.ToString("HH:mm:ss ")+Username+" | Credits: "+credits+" - Uridium: "+uridium+ " - Extra Energy: "+ExtraEnergy+ " - Rank Points: "+rPoints);
                      credits=credits.Replace(".",string.Empty);
                      Crediti=credits;        
                      C++;
                  }else{
-                     Console.WriteLine(DateTime.Now.ToString("HH:mm:ss ")+Username+ " | Credits: " +credits+ " - Uridium: " +uridium+" - Extra Energy: "+ExtraEnergy);
+                     Console.WriteLine(DateTime.Now.ToString("HH:mm:ss ")+Username+ " | Credits: " +credits+ " - Uridium: " +uridium+" - Extra Energy: "+ExtraEnergy+ " - Rank Points: "+rPoints);
                      credits=credits.Replace(".",string.Empty);       
                      if(string.Compare(Crediti,credits)==0)
                          SendNotification(0);
@@ -182,14 +183,14 @@ namespace ConsoleApp1{
 
                 if (C == 0)
                 {
-                    Console.WriteLine(DateTime.Now.ToString("HH:mm:ss ") + Username + " | Credits: " + credits + " - Uridium: " + uridium + " - Extra Energy: " + ExtraEnergy);
+                    Console.WriteLine(DateTime.Now.ToString("HH:mm:ss ") + Username + " | Credits: " + credits + " - Uridium: " + uridium + " - Extra Energy: " + ExtraEnergy+ " - Rank Points: "+rPoints);
                     credits = credits.Replace(".", string.Empty);
                     Crediti = credits;
                     C++;
                 }
                 else
                 {
-                    Console.WriteLine(DateTime.Now.ToString("HH:mm:ss ") + Username + " | Credits: " + credits + " - Uridium: " + uridium + " - Extra Energy: " + ExtraEnergy);
+                    Console.WriteLine(DateTime.Now.ToString("HH:mm:ss ") + Username + " | Credits: " + credits + " - Uridium: " + uridium + " - Extra Energy: " + ExtraEnergy+ " - Rank Points: "+rPoints);
                     credits = credits.Replace(".", string.Empty);
                     if (string.Compare(Crediti, credits) == 0)
                         SendNotification(0);
@@ -209,6 +210,7 @@ namespace ConsoleApp1{
             using (var wc = new WebClient()){
                 var xmlResult = "";
                 var htmlResult = "";
+                var rpResult = "";
                 try{
                     htmlResult += Login(wc);
                     var doc1 = new HtmlAgilityPack.HtmlDocument();
@@ -233,6 +235,10 @@ namespace ConsoleApp1{
                     xmlResult += wc.DownloadString("https://" + Server + ".darkorbit.com/flashinput/galaxyGates.php?userID=" + userId + "&action=init&sid=" + Sid);
                     doc1.LoadHtml(xmlResult);
                     ExtraEnergy = int.Parse(doc1.DocumentNode.SelectSingleNode("//samples").InnerText);
+                    
+                    rpResult += wc.DownloadString("https://" + Server + ".darkorbit.com/indexInternal.es?action=internalHallofFame&view=dailyRank");
+                    doc1.LoadHtml(rpResult);
+                    rPoints = doc1.DocumentNode.SelectSingleNode("(//div[@id=\"hof_daily_points_points\"])").InnerText;
 
                 }
                 catch(Exception ex){
