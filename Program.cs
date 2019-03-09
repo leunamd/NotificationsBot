@@ -17,6 +17,7 @@ namespace ConsoleApp1{
     public class Settings{
 
         private int damagePercentage;
+        public static string version = "v1.3.6";
 
         public int DamagePercentage{
             get => damagePercentage;
@@ -75,6 +76,7 @@ namespace ConsoleApp1{
 
         public void AddSettings(int damagePercentage,bool buildTech,bool buildSkylab){
             settings = new Settings(damagePercentage,buildTech,buildSkylab);
+            Console.Title = "NotificationBot " + nversion;
         }
         
          private void SendNotification(int i){                     //0=inactivty 1=session lost
@@ -536,7 +538,7 @@ namespace ConsoleApp1{
             string[] accounts;
             var lines = 0;
             var i = 0;
-            Console.WriteLine("v1.3.6");
+            Console.WriteLine(Settings.version);
             Console.WriteLine(DateTime.Now.ToString("HH:mm:ss ")+"Logging in...");
             try{
                 accounts = System.IO.File.ReadAllLines(@"settings.txt");
