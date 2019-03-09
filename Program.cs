@@ -76,7 +76,7 @@ namespace ConsoleApp1{
 
         public void AddSettings(int damagePercentage,bool buildTech,bool buildSkylab){
             settings = new Settings(damagePercentage,buildTech,buildSkylab);
-            Console.Title = "NotificationBot " + nversion;
+            Console.Title = "NotificationBot " + Settings.version;
         }
         
          private void SendNotification(int i){                     //0=inactivty 1=session lost
